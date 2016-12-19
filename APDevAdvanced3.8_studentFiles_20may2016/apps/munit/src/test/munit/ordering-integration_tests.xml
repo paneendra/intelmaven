@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<mule
+    xmlns="http://www.mulesoft.org/schema/mule/core"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ws="http://www.mulesoft.org/schema/mule/ws"
+    xmlns:json="http://www.mulesoft.org/schema/mule/json"
+    xmlns:http="http://www.mulesoft.org/schema/mule/http"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:spring="http://www.springframework.org/schema/beans"
+    xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+    xmlns:mclient="http://www.mulesoft.org/schema/mule/mclient"
+    xmlns:mock="http://www.mulesoft.org/schema/mule/mock"
+    xsi:schemaLocation="
+    http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+    http://www.mulesoft.org/schema/mule/ws http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd
+    http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-current.xsd
+    http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+    http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+    http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd
+    http://www.mulesoft.org/schema/mule/mclient http://www.mulesoft.org/schema/mule/mclient/current/mule-mclient.xsd">
+
+  <munit:config mock-inbounds="false" mock-connectors="false"/>
+
+  <http:request-config name="httpClient" host="${http.host}" port="${http.port}"/>
+
+  <context:property-placeholder location="order-system-${env}.properties"/>
+
+  <spring:beans>
+    <spring:import resource="classpath:order-provisioning.xml"/>
+  </spring:beans>
+
+  <munit:test name="retrieveOrders_returns200" description="Calling retrieveOrders returns a java list of orders">
+    <http:request config-ref="httpClient" method="${http.method}" path="${http.path}"/> 
+    <munit:assert-on-equals actualValue="#[message.inboundProperties.'http.status']" expectedValue="#[200]"/>
+  </munit:test>
+
+  <munit:test name="retrieveOrders_returnsListOfOrders" description="Calling retrieveOrders returns a java list of orders">
+    <http:request config-ref="httpClient" method="${http.method}" path="${http.path}"/> 
+    <logger message="#['\n\njson data\n\n' + message.payloadAs(java.lang.String)]" level="ERROR"/>
+    <munit:assert-on-equals actualValue="#[message.inboundProperties.'http.status']" expectedValue="#[200]"/>
+  </munit:test>
+
+</mule>

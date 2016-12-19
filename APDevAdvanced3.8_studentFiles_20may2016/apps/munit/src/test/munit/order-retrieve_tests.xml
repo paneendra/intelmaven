@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<mule 
+  xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+  xmlns="http://www.mulesoft.org/schema/mule/core"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:ws="http://www.mulesoft.org/schema/mule/ws"
+  xmlns:spring="http://www.springframework.org/schema/beans"
+  xmlns:munit="http://www.mulesoft.org/schema/mule/munit"
+  xmlns:mclient="http://www.mulesoft.org/schema/mule/mclient"
+  xmlns:mock="http://www.mulesoft.org/schema/mule/mock"
+  xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+  http://www.mulesoft.org/schema/mule/ws http://www.mulesoft.org/schema/mule/ws/current/mule-ws.xsd
+  http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+  http://www.mulesoft.org/schema/mule/mock http://www.mulesoft.org/schema/mule/mock/current/mule-mock.xsd
+  http://www.mulesoft.org/schema/mule/mclient http://www.mulesoft.org/schema/mule/mclient/current/mule-mclient.xsd
+  http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd" version="EE-3.6.1">
+
+  <munit:config doc:name="Munit configuration" />
+
+  <spring:beans>
+    <spring:import resource="classpath:order-provisioning.xml"/>
+  </spring:beans>
+
+  <munit:test name="retrieveOrders_returnsListOfOrders" description="Calling retrieveOrders returns a java list of orders">
+    <mock:when messageProcessor="ws:consumer" doc:name="Mock">
+      <mock:then-return payload="#[getResource('orderResponse.xml').asString()]">
+        <mock:inbound-properties>
+          <mock:inbound-property key="Content-Type" value="#['text/xml; charset=UTF-8']" />
+        </mock:inbound-properties>
+      </mock:then-return>
+    </mock:when>
+    <flow-ref name="retrieveOrders" doc:name="retrieveOrders" />
+    <munit:assert-true condition="#[message.payload is java.util.List]" doc:name="Assert True" />
+    <munit:assert-true condition="#[message.payload.size() > 0]" doc:name="Assert True" />
+  </munit:test>
+
+</mule>
